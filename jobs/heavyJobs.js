@@ -33,6 +33,13 @@ const worker = new Worker(
             let count = 0;
             const genreSet = new Set();
 
+            // ambil data dengan title yg ada
+            const existingData = new Set();
+
+            // Ambil semua judul yang sudah ada dari database sekali di awal (jika data besar, lakukan per batch / per 1000 rows)
+            const existingRecords = await animeRepository.find({ select: ['title'] });
+            existingRecords.forEach(record => existingData.add(record.title.trim().toLowerCase()));
+
             for (let i = 0; i < rows.length; i++) {
                 const row = rows[i];
                 const rating = parseRating(row.Rating);
@@ -50,20 +57,13 @@ const worker = new Worker(
                     });
                 }
 
-                // ambil data dengan title yg ada
-                const existingData = new Set();
-
-                // Ambil semua judul yang sudah ada dari database sekali di awal (jika data besar, lakukan per batch / per 1000 rows)
-                const existingRecords = await animeRepository.find({ select: ['title'] });
-                existingRecords.forEach(record => existingData.add(record.title.trim().toLowerCase()));
-
                 const normalizedTitle = row.Title?.trim().toLowerCase();
 
                 if (existingData.has(normalizedTitle)) {
                     // Lewati jika sudah ada
                     continue;
                 }
-                
+
                 // Masukkan ke buffer
                 insertBuffer.push({
                     title: row.Title,
