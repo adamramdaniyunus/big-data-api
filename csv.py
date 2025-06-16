@@ -1,4 +1,4 @@
-input_path = 'anime_data.csv'
+input_path = 'anime_data_uncleaned.csv'
 output_path = 'anime_data_cleaned.csv'
 
 # Baca file sebagai teks

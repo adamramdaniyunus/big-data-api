@@ -62,10 +62,10 @@ const worker = new Worker(
                 // Batch insert per chunk
                 if (insertBuffer.length >= chunkSize || i === rows.length - 1) {
                     try {
-                        console.log("Inserting new data: ", insertBuffer[i]);
+                        console.log("Inserting new data: ", row);
                         await animeRepository.insert(insertBuffer);
 
-                        console.log(`✅ Success add new data: ${insertBuffer[i]}`);
+                        console.log(`✅ Success add new data: ${row}`);
                         
                     } catch (err) {
                         console.error(`❌ Failed inserting data for index ${i}:`, err);
