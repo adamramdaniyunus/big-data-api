@@ -50,6 +50,20 @@ const worker = new Worker(
                     });
                 }
 
+                // ambil data dengan title yg ada
+                const existingData = new Set();
+
+                // Ambil semua judul yang sudah ada dari database sekali di awal (jika data besar, lakukan per batch / per 1000 rows)
+                const existingRecords = await animeRepository.find({ select: ['title'] });
+                existingRecords.forEach(record => existingData.add(record.title.trim().toLowerCase()));
+
+                const normalizedTitle = row.Title?.trim().toLowerCase();
+
+                if (existingData.has(normalizedTitle)) {
+                    // Lewati jika sudah ada
+                    continue;
+                }
+                
                 // Masukkan ke buffer
                 insertBuffer.push({
                     title: row.Title,
@@ -59,6 +73,9 @@ const worker = new Worker(
                     image: row.Image,
                 });
 
+                // Tambahkan juga ke set agar tidak duplikat dalam batch yang sama
+                existingData.add(normalizedTitle);
+
                 // Batch insert per chunk
                 if (insertBuffer.length >= chunkSize || i === rows.length - 1) {
                     try {
@@ -66,7 +83,7 @@ const worker = new Worker(
                         await animeRepository.insert(insertBuffer);
 
                         console.log(`✅ Success add new data: ${row}`);
-                        
+
                     } catch (err) {
                         console.error(`❌ Failed inserting data for index ${i}:`, err);
                         // simpan insertBuffer ke log error
